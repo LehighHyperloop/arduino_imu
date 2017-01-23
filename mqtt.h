@@ -2,7 +2,7 @@
 #define __MQTT_H__
 
 #define MQTT_BUFFER_SIZE 100
-#define HEARTBEAT_INTERVAL 50
+#define HEARTBEAT_INTERVAL 100
 
 #include <ArduinoJson.h>
 #include <Bridge.h>
