@@ -32,6 +32,28 @@ adafruit_bno055_offsets_t sensor_calib = {
 	.mag_radius = 0
 };
 
+// note: the _in array should have increasing values
+int multiMap(int val, int* _in, int* _out, uint8_t size)
+{
+  // take care the value is within range
+  // val = constrain(val, _in[0], _in[size-1]);
+  if (val <= _in[0]) return _out[0];
+  if (val >= _in[size-1]) return _out[size-1];
+
+  // search right interval
+  uint8_t pos = 1;  // _in[0] allready tested
+  while(val > _in[pos]) pos++;
+
+  // this will handle all exact "points" in the _in array
+  if (val == _in[pos]) return _out[pos];
+
+  // interpolate in the right segment for the rest
+  return (val - _in[pos-1]) * (_out[pos] - _out[pos-1]) / (_in[pos] - _in[pos-1]) + _out[pos-1];
+}
+
+int in_analogRead[] = { 190, 315, 390, 460, 540, 600 };
+int out_pressure[]  = {   0,  40,  60,  80, 100, 120 };
+
 void subscribe()
 {
   /* Subscribe to nothing */
@@ -40,6 +62,9 @@ void subscribe()
 void setup()
 {
   Serial.begin(9600);
+
+  pinMode(A1, INPUT);
+  pinMode(A2, INPUT);
 
   /*flash onboard LED for debug*/
   Serial.println();
@@ -102,6 +127,16 @@ void loop()
 
     root.printTo(mqtt.stringBuffer, sizeof(mqtt.stringBuffer));
     mqtt.client.publish("sensor/center/accel", mqtt.stringBuffer);
+
+    int pressure_levitation = analogRead(A2);
+    int pressure_pneumatics = analogRead(A1);
+    JsonObject& p_root = jsonBuffer.createObject();
+
+    p_root["levitation"] = multiMap(pressure_levitation, in_analogRead, out_pressure, sizeof(in_analogRead)/sizeof(int*));
+    p_root["pneumatics"] = multiMap(pressure_pneumatics, in_analogRead, out_pressure, sizeof(in_analogRead)/sizeof(int*));
+		p_root["t"] = t;
+    p_root.printTo(mqtt.stringBuffer, sizeof(mqtt.stringBuffer));
+    mqtt.client.publish("sensor/all/pressure", mqtt.stringBuffer);
 
     last_t = t;
   }
