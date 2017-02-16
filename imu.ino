@@ -51,8 +51,8 @@ int multiMap(int val, int* _in, int* _out, uint8_t size)
   return (val - _in[pos-1]) * (_out[pos] - _out[pos-1]) / (_in[pos] - _in[pos-1]) + _out[pos-1];
 }
 
-int in_analogRead[] = { 190, 315, 390, 460, 540, 600 };
-int out_pressure[]  = {   0,  40,  60,  80, 100, 120 };
+int in_analogRead[] = { 190, 315, 390, 460, 540, 600, 1000 };
+int out_pressure[]  = {   0,  40,  60,  80, 100, 120, 200 };
 
 void subscribe()
 {
